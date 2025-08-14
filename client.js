@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재고/발주 엑셀 업로드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .type-btn {
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .type-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .type-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .file-upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload-area.has-file {
+            border-color: #28a745;
+            background: #f8fff8;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .file-upload-area.has-file .upload-icon {
+            color: #28a745;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            display: none;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .upload-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .result-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .result-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .guide {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .guide h4 {
+            color: #004085;
+            margin-bottom: 10px;
+        }
+
+        .error-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .error-item {
+            background: #fff5f5;
+            border-left: 4px solid #e53e3e;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .type-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>📊 재고/발주 엑셀 업로드</h1>
+            <p>엑셀 파일을 업로드하여 재고/발주 데이터를 처리하세요</p>
+        </div>
+
+        <!-- 업로드 섹션 -->
+        <div class="upload-section">
+            <!-- 타입 선택 -->
+            <div class="type-selector">
+                <button class="type-btn active" data-type="재고">📤 재고 (출고)</button>
+                <button class="type-btn" data-type="발주">📥 발주 (입고)</button>
+            </div>
+
+            <!-- 파일 업로드 영역 -->
+            <div class="file-upload-area" id="fileUploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">
+                    <strong>엑셀 파일을 여기에 드롭하거나 클릭하여 선택하세요</strong><br>
+                    (.xlsx 파일만 지원)
+                </div>
+            </div>
+
+            <!-- 숨겨진 파일 input -->
+            <input type="file" id="fileInput" accept=".xlsx" style="display: none;">
+
+            <!-- 파일 정보 -->
+            <div class="file-info" id="fileInfo">
+                <strong>선택된 파일:</strong> <span id="fileName"></span><br>
+                <strong>파일 크기:</strong> <span id="fileSize"></span>
+            </div>
+
+            <!-- 업로드 버튼 -->
+            <button class="upload-btn" id="uploadBtn" disabled>업로드 및 처리</button>
+        </div>
+
+        <!-- 로딩 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>파일을 처리 중입니다...</div>
+        </div>
+
+        <!-- 결과 -->
+        <div class="result" id="result"></div>
+
+        <!-- 가이드 -->
+        <div class="guide" id="guide">
+            <h4>📋 재고 엑셀 파일 형식:</h4>
+            <ul>
+                <li><strong>1열(A):</strong> 상품명 (필수)</li>
+                <li><strong>5열(E):</strong> 판매수량 (필수, 숫자) - 빼야할 수량</li>
+                <li><strong>11열(K):</strong> 총수량 (필수, 숫자) - 남은 총수량</li>
+                <li><strong>※ 첫 번째 행은 헤더로 처리하지 않습니다</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let selectedFile = null;
+        let selectedType = '재고';
+        const API_BASE_URL = 'http://localhost:8080/api'; // Spring Boot 서버 주소
+
+        // DOM 요소들
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const guide = document.getElementById('guide');
+        const typeButtons = document.querySelectorAll('.type-btn');
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateGuide();
+        });
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            // 타입 버튼 클릭
+            typeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    typeButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedType = this.dataset.type;
+                    updateGuide();
+                });
+            });
+
+            // 파일 업로드 영역 클릭
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+
+            // 파일 선택
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // 드래그 앤 드롭
+            fileUploadArea.addEventListener('dragover', handleDragOver);
+            fileUploadArea.addEventListener('dragleave', handleDragLeave);
+            fileUploadArea.addEventListener('drop', handleDrop);
+
+            // 업로드 버튼
+            uploadBtn.addEventListener('click', handleUpload);
+        }
+
+        // 파일 선택 처리
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                    alert('Excel 파일(.xlsx)만 업로드 가능합니다.');
+                    fileInput.value = '';
+                    return;
+                }
+                setSelectedFile(file);
+            }
+        }
+
+        // 드래그 오버
+        function handleDragOver(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        }
+
+        // 드래그 리브
+        function handleDragLeave(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        }
+
+        // 드롭
+        function handleDrop(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                    alert('Excel 파일(.xlsx)만 업로드 가능합니다.');
+                    return;
+                }
+                setSelectedFile(file);
+            }
+        }
+
+        // 선택된 파일 설정
+        function setSelectedFile(file) {
+            selectedFile = file;
+            fileUploadArea.classList.add('has-file');
+            fileUploadArea.querySelector('.upload-icon').textContent = '✅';
+            fileUploadArea.querySelector('.upload-text').innerHTML = 
+                `<strong>파일이 선택되었습니다!</strong><br>${file.name}`;
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            uploadBtn.disabled = false;
+            
+            // 결과 초기화
+            result.classList.remove('show');
+        }
+
+        // 파일 크기 포맷
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 업로드 처리
+        async function handleUpload() {
+            if (!selectedFile) {
+                alert('파일을 선택해주세요.');
+                return;
+            }
+
+            // UI 상태 변경
+            uploadBtn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+
+            try {
+                // FormData 생성
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('type', selectedType);
+
+                // API 호출
+                const response = await fetch(`${API_BASE_URL}/excel/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(data, true);
+                } else {
+                    showResult(data, false);
+                }
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showResult({
+                    errorMessages: ['서버 연결 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.']
+                }, false);
+            } finally {
+                // UI 상태 복원
+                loading.classList.remove('show');
+                uploadBtn.disabled = false;
+            }
+        }
+
+        // 결과 표시
+        function showResult(data, isSuccess) {
+            result.classList.add('show');
+            
+            let resultHTML = '';
+            
+            if (isSuccess && data.processedRows > 0) {
+                resultHTML += `
+                    <div class="result-success">
+                        <strong>✅ 처리 완료!</strong>
+                    </div>
+                    <div class="result-details">
+                        <strong>처리 결과:</strong><br>
+                        • 처리 타입: ${data.processingType}<br>
+                        • 총 행 수: ${data.totalRows}행<br>
+                        • 성공: <span style="color: #28a745;">${data.processedRows}행</span><br>
+                        • 실패: <span style="color: #dc3545;">${data.errorRows}행</span><br>
+                        • 처리 시간: ${data.processingTime}
+                    </div>
+                `;
+
+                if (data.processedProducts && data.processedProducts.length > 0) {
+                    resultHTML += `
+                        <div class="result-details" style="margin-top: 10px;">
+                            <strong>처리된 상품 (${data.processedProducts.length}개):</strong><br>
+                            ${data.processedProducts.slice(0, 10).map(product => `• ${product}`).join('<br>')}
+                            ${data.processedProducts.length > 10 ? '<br>... 외 ' + (data.processedProducts.length - 10) + '개' : ''}
+                        </div>
+                    `;
+                }
+            } else {
+                resultHTML += `
+                    <div class="result-error">
+                        <strong>❌ 처리 실패</strong>
+                    </div>
+                `;
+            }
+
+            if (data.errorMessages && data.errorMessages.length > 0) {
+                resultHTML += `
+                    <div class="result-details">
+                        <strong>오류 메시지:</strong>
+                        <div class="error-list">
+                            ${data.errorMessages.map(error => `<div class="error-item">${error}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            result.innerHTML = resultHTML;
+        }
+
+        // 가이드 업데이트
+        function updateGuide() {
+            let guideHTML = '';
+            
+            if (selectedType === '재고') {
+                guideHTML = `
+                    <h4>📋 재고 엑셀 파일 형식:</h4>
+                    <ul>
+                        <li><strong>1열(A):</strong> 상품명 (필수)</li>
+                        <li><strong>5열(E):</strong> 판매수량 (필수, 숫자) - 빼야할 수량</li>
+                        <li><strong>11열(K):</strong> 총수량 (필수, 숫자) - 남은 총수량</li>
+                        <li><strong>※ 첫 번째 행은 헤더로 처리하지 않습니다</strong></li>
+                    </ul>
+                    <p><strong>처리 방식:</strong> 판매수량만큼 FIFO로 재고 차감 후 총수량으로 설정</p>
+                `;
+            } else {
+                guideHTML = `
+                    <h4>📋 발주 엑셀 파일 형식:</h4>
+                    <ul>
+                        <li><strong>1열(A):</strong> 중분류 (선택사항) - 카테고리</li>
+                        <li><strong>2열(B):</strong> 상품명 (필수)</li>
+                        <li><strong>5열(E):</strong> 발주수량 (필수, 숫자) - 추가할 수량</li>
+                        <li><strong>※ 첫 번째 행은 헤더로 처리하지 않습니다</strong></li>
+                    </ul>
+                    <p><strong>처리 방식:</strong> 상품/카테고리 자동 생성 후 발주수량만큼 재고 추가</p>
+                `;
+            }
+            
+            guide.innerHTML = guideHTML;
+        }
+    </script>
+</body>
+</html>
