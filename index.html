@@ -382,7 +382,6 @@
                             <td><input type="checkbox" class="category-checkbox" value="${cat.categoryId}"></td>
                             <td>${cat.category}</td>
                             <td>${cat.categoryType}</td>
-                            <td>${cat.createdAt ? new Date(cat.createdAt).toLocaleString() : '-'}</td>
                         </tr>
                     `;
                     categoryTableBody.insertAdjacentHTML("beforeend", row);
