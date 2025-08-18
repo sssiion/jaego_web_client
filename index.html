@@ -332,7 +332,69 @@
         const result = document.getElementById('result');
         const guide = document.getElementById('guide');
         const typeButtons = document.querySelectorAll('.type-btn');
+        const loadCategoriesBtn = document.getElementById("loadCategoriesBtn");
+        const categoryTable = document.getElementById("categoryTable");
+        const categoryTableBody = document.getElementById("categoryTableBody");
+        const categoryActions = document.getElementById("categoryActions");
+        const updateTypeBtn = document.getElementById("updateTypeBtn");
+        const newTypeSelect = document.getElementById("newType");
 
+        // 카테고리 불러오기
+        loadCategoriesBtn.addEventListener("click", async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/categories`);
+                const data = await response.json();
+                
+                categoryTableBody.innerHTML = ""; // 초기화
+                data.forEach(cat => {
+                    const row = `
+                        <tr>
+                            <td><input type="checkbox" class="category-checkbox" value="${cat.categoryId}"></td>
+                            <td>${cat.category}</td>
+                            <td>${cat.categoryType}</td>
+                            <td>${cat.createdAt ? new Date(cat.createdAt).toLocaleString() : '-'}</td>
+                        </tr>
+                    `;
+                    categoryTableBody.insertAdjacentHTML("beforeend", row);
+                });
+                categoryTable.style.display = "table";
+                categoryActions.style.display = "block";
+            } catch (error) {
+                alert("카테고리를 불러오는 중 오류 발생");
+                console.error(error);
+            }
+        });
+        
+        // 선택된 카테고리 타입 변경
+        updateTypeBtn.addEventListener("click", async () => {
+            const checkboxes = document.querySelectorAll(".category-checkbox:checked");
+            const ids = Array.from(checkboxes).map(cb => Number(cb.value));
+            const newType = newTypeSelect.value;
+        
+            if (ids.length === 0) {
+                alert("변경할 카테고리를 선택해주세요.");
+                return;
+            }
+        
+            try {
+                const response = await fetch(`${API_BASE_URL}/update/${newType}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(ids)
+                });
+                if (response.ok) {
+                    alert("카테고리 타입이 성공적으로 변경되었습니다.");
+                    // 변경 후 다시 불러오기
+                    loadCategoriesBtn.click();
+                } else {
+                    alert("타입 변경 실패");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("서버 오류: 타입 변경 실패");
+            }
+        });
+        
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
@@ -560,5 +622,35 @@
             guide.innerHTML = guideHTML;
         }
     </script>
+    <div class="category-section" style="margin-top:30px;">
+    <h2>📂 카테고리 관리</h2>
+    <button id="loadCategoriesBtn" class="upload-btn" style="margin-bottom:15px;">
+        카테고리 불러오기
+    </button>
+    <!-- 카테고리 테이블 -->
+    <table border="1" width="100%" cellspacing="0" cellpadding="5" id="categoryTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>선택</th>
+                <th>중분류명</th>
+                <th>카테고리 타입</th>
+                <th>생성일</th>
+            </tr>
+        </thead>
+        <tbody id="categoryTableBody"></tbody>
+    </table>
+    
+    <!-- 타입 선택 및 변경 버튼 -->
+    <div style="margin-top:15px; display:none;" id="categoryActions">
+        <label for="newType">변경할 타입: </label>
+        <select id="newType">
+            <option value="소비">소비</option>
+            <option value="유통">유통</option>
+        </select>
+        <button id="updateTypeBtn" class="upload-btn" style="width:auto; margin-left:10px;">
+            선택 항목 타입 변경
+        </button>
+    </div>
+</div>
 </body>
 </html>
