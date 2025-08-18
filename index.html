@@ -405,7 +405,7 @@
         updateTypeBtn.addEventListener("click", async () => {
             const checkboxes = document.querySelectorAll(".category-checkbox:checked");
             const ids = Array.from(checkboxes).map(cb => Number(cb.value));
-            const newType = newTypeSelect.value;
+            const categoryType = newTypeSelect.value;
         
             if (ids.length === 0) {
                 alert("변경할 카테고리를 선택해주세요.");
@@ -413,7 +413,7 @@
             }
         
             try {
-                const response = await fetch(`${API_BASE_URL}/update/${newType}`, {
+                const response = await fetch(`${API_BASE_URL}/update/${categoryType}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(ids)
