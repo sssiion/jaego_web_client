@@ -413,7 +413,7 @@
             }
         
             try {
-                const response = await fetch(`${API_BASE_URL}/update/${categoryType}`, {
+                const response = await fetch(`${API_BASE_URL}/categories/update/${categoryType}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(ids)
