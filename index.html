@@ -455,7 +455,7 @@
 
             // 파일 선택
             fileInput.addEventListener('change', handleFileSelect);
-
+            fileUploadArea.addEventListener('click', () => fileInput.click());
             // 드래그 앤 드롭
             fileUploadArea.addEventListener('dragover', handleDragOver);
             fileUploadArea.addEventListener('dragleave', handleDragLeave);
