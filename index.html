@@ -273,13 +273,13 @@
             </div>
 
             <!-- 파일 업로드 영역 -->
-            <div class="file-upload-area" id="fileUploadArea">
+            <label class="file-upload-area" id="fileUploadArea">
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">
                     <strong>엑셀 파일을 여기에 드롭하거나 클릭하여 선택하세요</strong><br>
                     (.xlsx 파일만 지원)
                 </div>
-            </div>
+            </label>
 
             <!-- 숨겨진 파일 input -->
             <input type="file" id="fileInput" accept=".xlsx" style="display: none;">
@@ -451,8 +451,7 @@
                 });
             });
 
-            // 파일 업로드 영역 클릭
-            fileUploadArea.addEventListener('click', () => fileInput.click());
+            
 
             // 파일 선택
             fileInput.addEventListener('change', handleFileSelect);
