@@ -342,6 +342,15 @@
             선택 항목 타입 변경
         </button>
     </div>
+    <div class="advanced-section">
+            <h2>⚙️ 고급 기능</h2>
+            <p style="font-size:0.9rem; color:#666; margin-bottom:15px;">
+                데이터 정합성에 문제가 있을 경우에만 사용하세요.
+            </p>
+            <button id="batchSettingBtn" class="upload-btn setting-btn">
+                배치 수량 자동 조정
+            </button>
+        </div>
 </div>
     </div>
 
@@ -371,6 +380,41 @@
         const updateTypeBtn = document.getElementById("updateTypeBtn");
         const newTypeSelect = document.getElementById("newType");
 
+        // [신규] 배치 자동 세팅 처리 함수
+        async function handleBatchSetting() {
+            // 사용자에게 위험한 작업임을 한번 더 확인
+            if (!confirm('재고의 총 수량과 배치 수량의 합이 맞지 않는 항목에 대해, 유통기한이 없는 가상 배치를 생성하여 수량을 조정합니다. 계속하시겠습니까?')) {
+                return;
+            }
+
+            // UI 상태 변경
+            batchSettingBtn.disabled = true;
+            batchSettingBtn.textContent = '처리 중...';
+
+            try {
+                // API 호출
+                const response = await fetch(`${API_BASE_URL}/batches/setting`, {
+                    method: 'POST', // POST 또는 GET 등 서버 API에 맞게 설정
+                });
+
+                if (response.ok) {
+                    alert('✅ 배치 수량 자동 조정이 성공적으로 완료되었습니다.');
+                } else {
+                    // 서버에서 에러 메시지를 보냈을 경우
+                    const errorText = await response.text();
+                    console.error('Batch setting error response:', errorText);
+                    alert(`❌ 처리 실패 (HTTP ${response.status}): ${errorText || '서버 오류가 발생했습니다.'}`);
+                }
+            } catch (error) {
+                // 네트워크 오류 등
+                console.error('Batch setting error:', error);
+                alert('❌ 서버 연결 오류가 발생했습니다. 네트워크나 서버 상태를 확인해주세요.');
+            } finally {
+                // UI 상태 복원
+                batchSettingBtn.disabled = false;
+                batchSettingBtn.textContent = '배치 수량 자동 조정';
+            }
+        }
         // 카테고리 불러오기
         loadCategoriesBtn.addEventListener("click", async () => {
     try {
@@ -463,6 +507,8 @@
 
             // 업로드 버튼
             uploadBtn.addEventListener('click', handleUpload);
+             // [신규] 배치 자동 세팅 버튼 클릭 이벤트
+            batchSettingBtn.addEventListener('click', handleBatchSetting);
         }
 
         // 파일 선택 처리
