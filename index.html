@@ -394,7 +394,7 @@
             try {
                 // API 호출
                 const response = await fetch(`${API_BASE_URL}/batches/setting`, {
-                    method: 'POST', // POST 또는 GET 등 서버 API에 맞게 설정
+                    method: 'GET', // POST 또는 GET 등 서버 API에 맞게 설정
                 });
 
                 if (response.ok) {
