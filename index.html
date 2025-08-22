@@ -634,7 +634,7 @@
                     const errorText = await response.text();
                     console.error('Server error response:', errorText); // 실제 에러 내용을 콘솔에 출력
                     showResult({
-                        errorMessages: [`서버 오류 (HTTP ${response.status}): 내용을 확인하세요.`]
+                        errorMessages: [`서버 오류 (HTTP ${response.status}): ${errorText} 내용을 확인하세요.`]
                     }, false);
                 }
             } catch (error) {
