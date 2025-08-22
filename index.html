@@ -423,6 +423,10 @@
                     const errorText = await response.text();
                     console.error('Batch setting error response:', errorText);
                     alert(`❌ 처리 실패 (HTTP ${response.status}): ${errorText || '서버 오류가 발생했습니다.'}`);
+                    showResult({
+                            errorMessages: [`서버 오류 (HTTP ${response.status}): ${errorText || '내용을 확인하세요.'}`]
+                        }, false);
+                        alert(`서버 오류: HTTP ${response.status} - 에러 내용을 화면에서 확인하세요.`)
                 }
             } catch (error) {
                 // 네트워크 오류 등
